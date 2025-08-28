@@ -1,0 +1,45 @@
+select d.fuel_voucher_genertaed_date "Date / Time",
+       d.fuel_voucher_requested_by "User ID",
+       d.site "Site ",
+       ifsapp.site_api.Get_Description(d.site) "Site Description",
+       d.fuel_station_id "Fuel Station",
+       d.fuel_station_name "Fuel Station Name",
+       d.vat_code "Vat Reg Number",
+       ifsapp.trn_vehicle_details_api.Get_Supplier_Id(d.vehicle_no) "Transport Id",
+       ifsapp.Supplier_Info_API.Get_name(ifsapp.Trn_Vehicle_Details_API.Get_supplier_id(d.vehicle_no)) "Transport_Name",
+       d.vehicle_no "Vehicle Number",
+       ifsapp.trn_vehicle_details_api.Get_Trn_Vehicle_Type(d.vehicle_no) "Vehicle Type",
+       ifsapp.trn_vehicle_details_api.Get_Make(d.vehicle_no) "Vehicle Category",
+       d.driver_name "Driver Name",
+       d.driver_nic "Driver Nic",
+       d.bulk_gate_pass_no "Gate Pass No",
+       d.wca_number "WCA Number",
+       (select t.fuel from ifsapp.sin_wh_fuel_details t where t.vehicale_number = d.vehicle_no)"Fuel Efficiency",
+       d.estimated_km "Estimate KM",
+       d.fuel_rate "Fuel Rate",
+       d.fuel_ltr "Fuel Ltr",
+       (d.fuel_rate * d.fuel_ltr) "Fuel Ltr Cost",
+       nvl(d.extra_ltr,0) "Extra Fuel Ltr",
+       nvl((d.fuel_rate * d.extra_ltr),0) "Extra Fuel Ltr Cost",
+       (d.fuel_ltr + nvl(d.extra_ltr,0)) "Total Fuel LTR",
+       d.total_fuel_cost "Total Fuel Cost",
+       d.fuel_voucher_no "Fuel Voucher No",
+       d.receipt_no "Fuel station Receipt No",
+       d.actual_fuel_ltr "Actual Fuel Ltr",
+       d.actual_fuel_cost "Actual Fuel Cost",
+       d.status "Status",
+       d.note "Note"
+
+  from ifsapp.sin_wh_fuel_voucher_dtl d
+ where ('&From_date' = '%' OR '&To_date' = '%' OR
+       to_date(d.fuel_voucher_genertaed_date) between
+       to_date('&From_date', 'DD/MM/YYYY') and
+       to_date('&To_date', 'DD/MM/YYYY'))
+   and d.site like '&Site'
+   and d.fuel_station_id like '&Fuel_Station'
+   and d.supplier_id like '&Transporter_Id'
+   and d.vehicle_no like '&Vehicle_No'
+   and (d.bulk_gate_pass_no like '&Document_No'
+   or d.wca_number like '&Wca_Number')
+   and d.fuel_voucher_no like '&FV_Number'
+   and d.receipt_no like '&Fuel_Station_Ref_Number'
